@@ -1,6 +1,11 @@
 import { Hono } from "hono";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { server } from "./mcp-server.js";
+import { registerUploadTools } from "./tools/upload.js";
+import { registerVideoTools } from "./tools/video.js";
+import { registerVideoUpdateTools } from "./tools/video_update.js";
+import { registerPackageTools } from "./tools/package.js";
+import { registerArchiveTools } from "./tools/archive.js";
 
 type Env = {
 	WECANDEO_ACCESS_KEY: string;
@@ -8,40 +13,45 @@ type Env = {
 
 const app = new Hono<{ Bindings: Env }>();
 
-const transport = new WebStandardStreamableHTTPServerTransport({
-	sessionIdGenerator: () => crypto.randomUUID(),
-});
+// Factory function to create a new, fully initialized server and transport for each request
+async function createServerAndTransport() {
+	const server = new McpServer({
+		name: "wecandeo-videopack-mcp",
+		version: "1.0.0",
+	});
 
-let isInitialized = false;
+	// Register all tools
+	registerUploadTools(server);
+	registerVideoTools(server);
+	registerVideoUpdateTools(server);
+	registerPackageTools(server);
+	registerArchiveTools(server);
 
-async function ensureInitialized() {
-	if (!isInitialized) {
-		try {
-			console.log("Initializing MCP Server...");
-			await server.connect(transport);
-			isInitialized = true;
-			console.log("MCP Server Initialized successfully.");
-		} catch (error: any) {
-			console.error("MCP Server Initialization FAILED:", error);
-			throw error;
-		}
-	}
+	server.tool(
+		"ping",
+		"Check if the Wecandeo MCP server is responsive",
+		{},
+		async () => ({
+			content: [{ type: "text", text: "pong" }],
+		})
+	);
+
+	// Stateless transport
+	const transport = new WebStandardStreamableHTTPServerTransport({});
+	await server.connect(transport);
+
+	return { server, transport };
 }
 
-app.get("/", async (c) => {
-	try {
-		await ensureInitialized();
-		return c.text("Wecandeo MCP Server (Web Standard) - Initialized");
-	} catch (error: any) {
-		return c.text(`Wecandeo MCP Server (Web Standard) - Initialization Error: ${error.message}`, 500);
-	}
+app.get("/", (c) => {
+	return c.text("Wecandeo MCP Server (Web Standard, Stateless) - Running");
 });
 
-// All MCP requests (GET for SSE, POST for messages, DELETE for session)
+// All MCP requests
 app.all("/mcp", async (c) => {
 	console.log(`MCP Request: ${c.req.method} ${c.req.url}`);
 	try {
-		await ensureInitialized();
+		const { transport } = await createServerAndTransport();
 		return transport.handleRequest(c.req.raw, {
 			authInfo: c.env as any,
 		});
@@ -51,26 +61,29 @@ app.all("/mcp", async (c) => {
 			jsonrpc: "2.0",
 			error: {
 				code: -32000,
-				message: `Initialization failed: ${error.message}`
+				message: `Server failed to start: ${error.message}`
 			}
 		}, 500);
 	}
 });
 
-// Support legacy /sse and /message routes for compatibility if needed,
-// but directing them to the same handler
+// Compatibility routes
 app.all("/sse", async (c) => {
-	await ensureInitialized();
-	return transport.handleRequest(c.req.raw, {
-		authInfo: c.env as any,
-	});
+	try {
+		const { transport } = await createServerAndTransport();
+		return transport.handleRequest(c.req.raw, { authInfo: c.env as any });
+	} catch (error: any) {
+		return c.json({ error: error.message }, 500);
+	}
 });
 
 app.all("/message", async (c) => {
-	await ensureInitialized();
-	return transport.handleRequest(c.req.raw, {
-		authInfo: c.env as any,
-	});
+	try {
+		const { transport } = await createServerAndTransport();
+		return transport.handleRequest(c.req.raw, { authInfo: c.env as any });
+	} catch (error: any) {
+		return c.json({ error: error.message }, 500);
+	}
 });
 
 export default app;
