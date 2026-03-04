@@ -17,13 +17,13 @@ Cloudflare Workers based MCP server for Wecandeo VideoPack API.
 
 2. **Deployment**:
    - Use GitHub Actions (configured in `.github/workflows/deploy.yml`).
-   - Requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets in GitHub.
+   - Requires `CF_API_TOKEN` and `CF_ACCOUNT_ID` secrets in GitHub.
 
 ## Usage (MCP)
 
-This server supports SSE transport.
-- SSE Endpoint: `https://<your-worker>.workers.dev/sse`
-- Message Endpoint: `https://<your-worker>.workers.dev/message`
+This server supports **Web Standard Streamable HTTP transport** due to Cloudflare Workers' stateless architecture.
+- **MCP Endpoint**: `https://<your-worker>.workers.dev/mcp`
+- **Important**: Clients MUST use `StreamableHTTPClientTransport` instead of `SSEClientTransport` to connect.
 
 ### Tools Example
 - `wecandeo_upload_create_ticket`: Start the upload process.
