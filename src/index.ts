@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { server } from "./mcp-server.js";
 
 type Env = {
@@ -8,32 +8,37 @@ type Env = {
 
 const app = new Hono<{ Bindings: Env }>();
 
-let transport: SSEServerTransport | null = null;
-
-app.get("/", (c) => {
-	return c.text("Wecandeo MCP Server (SSE)");
+const transport = new WebStandardStreamableHTTPServerTransport({
+	sessionIdGenerator: () => crypto.randomUUID(),
 });
 
-app.get("/sse", async (c) => {
-	transport = new SSEServerTransport("/message", c.res.raw);
-	await server.connect(transport);
+// Connect the server to the transport
+// Note: start() is a no-op for this transport, but we need to call connect
+await server.connect(transport);
 
-	// Return a streaming response
-	return new Response(null, {
-		headers: {
-			"Content-Type": "text/event-stream",
-			"Cache-Control": "no-cache",
-			"Connection": "keep-alive",
-		},
+app.get("/", (c) => {
+	return c.text("Wecandeo MCP Server (Web Standard)");
+});
+
+// All MCP requests (GET for SSE, POST for messages, DELETE for session)
+app.all("/mcp", async (c) => {
+	return transport.handleRequest(c.req.raw, {
+		authInfo: c.env as any, // Pass environment variables via authInfo
 	});
 });
 
-app.post("/message", async (c) => {
-	if (!transport) {
-		return c.text("No active SSE transport", 400);
-	}
-	await transport.handlePostMessage(c.req.raw, c.res.raw);
-	return c.text("OK");
+// Support legacy /sse and /message routes for compatibility if needed,
+// but directing them to the same handler
+app.all("/sse", async (c) => {
+	return transport.handleRequest(c.req.raw, {
+		authInfo: c.env as any,
+	});
+});
+
+app.all("/message", async (c) => {
+	return transport.handleRequest(c.req.raw, {
+		authInfo: c.env as any,
+	});
 });
 
 export default app;
