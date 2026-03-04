@@ -16,21 +16,45 @@ let isInitialized = false;
 
 async function ensureInitialized() {
 	if (!isInitialized) {
-		await server.connect(transport);
-		isInitialized = true;
+		try {
+			console.log("Initializing MCP Server...");
+			await server.connect(transport);
+			isInitialized = true;
+			console.log("MCP Server Initialized successfully.");
+		} catch (error: any) {
+			console.error("MCP Server Initialization FAILED:", error);
+			throw error;
+		}
 	}
 }
 
-app.get("/", (c) => {
-	return c.text("Wecandeo MCP Server (Web Standard)");
+app.get("/", async (c) => {
+	try {
+		await ensureInitialized();
+		return c.text("Wecandeo MCP Server (Web Standard) - Initialized");
+	} catch (error: any) {
+		return c.text(`Wecandeo MCP Server (Web Standard) - Initialization Error: ${error.message}`, 500);
+	}
 });
 
 // All MCP requests (GET for SSE, POST for messages, DELETE for session)
 app.all("/mcp", async (c) => {
-	await ensureInitialized();
-	return transport.handleRequest(c.req.raw, {
-		authInfo: c.env as any,
-	});
+	console.log(`MCP Request: ${c.req.method} ${c.req.url}`);
+	try {
+		await ensureInitialized();
+		return transport.handleRequest(c.req.raw, {
+			authInfo: c.env as any,
+		});
+	} catch (error: any) {
+		console.error("MCP Handler Error:", error);
+		return c.json({
+			jsonrpc: "2.0",
+			error: {
+				code: -32000,
+				message: `Initialization failed: ${error.message}`
+			}
+		}, 500);
+	}
 });
 
 // Support legacy /sse and /message routes for compatibility if needed,
