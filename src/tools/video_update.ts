@@ -17,7 +17,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             pkg: z.string().describe("Package ID")
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/package.json", {
+            const result = await client.get("/info/v1/video/set/package.json", {
                 key: accessKey,
                 access_key,
                 pkg,
@@ -35,7 +35,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             pkg: z.string().describe("Package ID")
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/exclude.json", {
+            const result = await client.get("/info/v1/video/set/exclude.json", {
                 key: accessKey,
                 access_key,
                 pkg,
@@ -53,7 +53,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             pkg: z.string().describe("Package ID")
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/publish.json", {
+            const result = await client.get("/info/v1/video/set/publish.json", {
                 key: accessKey,
                 access_key,
                 pkg,
@@ -71,7 +71,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             pkg: z.string().describe("Package ID")
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/pause.json", {
+            const result = await client.get("/info/v1/video/set/pause.json", {
                 key: accessKey,
                 access_key,
                 pkg,
@@ -89,7 +89,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             folder: z.string().describe("Target folder ID")
         },
         async ({ access_key, folder }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/folder.json", {
+            const result = await client.get("/info/v1/video/set/folder.json", {
                 key: accessKey,
                 access_key,
                 folder,
@@ -118,7 +118,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             Object.entries(params).forEach(([k, v]) => {
                 if (v !== undefined) queryParams[k] = v.toString();
             });
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/detail.json", queryParams);
+            const result = await client.get("/info/v1/video/set/detail.json", queryParams);
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
         }
     );
@@ -134,7 +134,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             price: z.number().optional().describe("Price value"),
         },
         async ({ access_key, enable, ...params }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/viral.json", {
+            const result = await client.get("/info/v1/video/set/viral.json", {
                 key: accessKey,
                 access_key,
                 enable: enable.toString(),
@@ -153,7 +153,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
             seq: z.number().describe("Thumbnail sequence number (1-6)")
         },
         async ({ access_key, seq }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/set/thumbnail.json", {
+            const result = await client.get("/info/v1/video/set/thumbnail.json", {
                 key: accessKey,
                 access_key,
                 seq: seq.toString(),

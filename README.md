@@ -1,7 +1,13 @@
 # Wecandeo VideoPack MCP Server
 
+> [!WARNING]  
+> 현재 버전은 임시로 생성된 MCP 서버입니다.
+
 Wecandeo VideoPack API를 위한 MCP(Model Context Protocol) 서버입니다.  
 Claude Desktop, Cursor 등 MCP 클라이언트에서 Wecandeo 비디오 관리 도구 32개를 Stdio 모드로 사용할 수 있습니다.
+
+- **홈페이지**: [https://www.wecandeo.com](https://www.wecandeo.com)
+- **API 가이드**: [https://support.wecandeo.com](https://support.wecandeo.com)
 
 ## 설치 및 실행
 

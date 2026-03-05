@@ -1,10 +1,28 @@
 {
-	"name": "wecandeo-mcp",
-	"version": "1.0.0",
-	"description": "Wecandeo VideoPack MCP Server - 32 tools for video management via MCP protocol",
+	"name": "@pluto90/wecandeo-v3-mcp",
+	"version": "1.0.1",
+	"description": "Wecandeo VideoPack v3 MCP Server - 32 tools for video management via MCP protocol",
 	"type": "module",
+	"author": "pluto90k <pluto90k@gmail.com>",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/pluto90k/mcp-wecandeo-v3.git"
+	},
+	"bugs": {
+		"url": "https://github.com/pluto90k/mcp-wecandeo-v3/issues"
+	},
+	"homepage": "https://github.com/pluto90k/mcp-wecandeo-v3#readme",
 	"bin": {
 		"wecandeo-mcp": "./dist/index.js"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"publishConfig": {
+		"access": "public"
 	},
 	"scripts": {
 		"build": "tsc",
@@ -17,7 +35,6 @@
 		"videopack",
 		"video"
 	],
-	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^22.0.0",
 		"typescript": "^5.5.2"

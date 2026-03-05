@@ -14,7 +14,7 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
         "Create an upload ticket (token) for video uploading. Returns uploadUrl and token.",
         {},
         async () => {
-            const result = await client.get("https://api.wecandeo.com/web/v3/uploadToken.json", {
+            const result = await client.get("/web/v3/uploadToken.json", {
                 key: accessKey,
             });
             return {
@@ -84,7 +84,7 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
             pkg: z.number().describe("The package ID"),
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/web/encoding/status.json", {
+            const result = await client.get("/web/encoding/status.json", {
                 key: accessKey,
                 access_key,
                 pkg: pkg.toString(),
@@ -165,7 +165,7 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
         "Retrieve list of supported caption languages and their IDs.",
         {},
         async () => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/caption/language.json", {
+            const result = await client.get("/info/v1/video/caption/language.json", {
                 key: accessKey,
             });
             return {

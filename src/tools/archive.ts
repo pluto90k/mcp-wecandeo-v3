@@ -14,7 +14,7 @@ export function registerArchiveTools(server: McpServer, client: WecandeoClient) 
         "Retrieve list of folders in the media archive.",
         {},
         async () => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/folders.json", {
+            const result = await client.get("/info/v1/folders.json", {
                 key: accessKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
@@ -27,7 +27,7 @@ export function registerArchiveTools(server: McpServer, client: WecandeoClient) 
         "Create a new folder in the media archive.",
         { folder_name: z.string().describe("Name of the folder to create") },
         async ({ folder_name }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/folder/create.json", {
+            const result = await client.get("/info/v1/folder/create.json", {
                 key: accessKey,
                 folder_name,
             });

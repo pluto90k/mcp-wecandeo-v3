@@ -14,7 +14,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         "Retrieve list of all distribution packages.",
         {},
         async () => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages.json", {
+            const result = await client.get("/info/v1/packages.json", {
                 key: accessKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
@@ -27,7 +27,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         "Start publishing all videos in a specific package.",
         { package_id: z.string().describe("Package ID") },
         async ({ package_id }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/all/publish.json", {
+            const result = await client.get("/info/v1/packages/all/publish.json", {
                 key: accessKey,
                 package_id,
             });
@@ -41,7 +41,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         "Pause publishing all videos in a specific package.",
         { package_id: z.string().describe("Package ID") },
         async ({ package_id }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/all/unpublish.json", {
+            const result = await client.get("/info/v1/packages/all/unpublish.json", {
                 key: accessKey,
                 package_id,
             });
@@ -58,7 +58,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
             domains: z.string().describe("Comma-separated list of domains to block")
         },
         async ({ package_id, domains }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/set/block/domain.json", {
+            const result = await client.get("/info/v1/packages/set/block/domain.json", {
                 key: accessKey,
                 package_id,
                 domains,
@@ -76,7 +76,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
             domains: z.string().describe("Comma-separated list of domains to unblock")
         },
         async ({ package_id, domains }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/set/unblock/domain.json", {
+            const result = await client.get("/info/v1/packages/set/unblock/domain.json", {
                 key: accessKey,
                 package_id,
                 domains,
@@ -91,7 +91,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         "Retrieve list of playlists.",
         {},
         async () => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/playlist/list.json", {
+            const result = await client.get("/info/v1/playlist/list.json", {
                 key: accessKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
@@ -104,7 +104,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         "Get details of a specific playlist.",
         { playlistKey: z.string().describe("Playlist Key") },
         async ({ playlistKey }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/playlist.json", {
+            const result = await client.get("/info/v1/playlist.json", {
                 key: accessKey,
                 playlistKey,
             });

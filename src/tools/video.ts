@@ -14,7 +14,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
         "Retrieve video list filtered by package ID.",
         { pkg: z.string().describe("Package ID") },
         async ({ pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/videos.json", {
+            const result = await client.get("/info/v1/videos.json", {
                 key: accessKey,
                 pkg,
             });
@@ -28,7 +28,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
         "Retrieve video list filtered by folder ID.",
         { folder: z.string().describe("Folder ID") },
         async ({ folder }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/folder/videos.json", {
+            const result = await client.get("/info/v1/folder/videos.json", {
                 key: accessKey,
                 folder,
             });
@@ -45,7 +45,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
             pkg: z.string().describe("Package ID")
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/detail.json", {
+            const result = await client.get("/info/v1/video/detail.json", {
                 key: accessKey,
                 access_key,
                 pkg,
@@ -63,7 +63,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
             pkg: z.string().describe("Package ID")
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/publishInfo.json", {
+            const result = await client.get("/info/v1/video/publishInfo.json", {
                 key: accessKey,
                 access_key,
                 pkg,
@@ -81,7 +81,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
             pkg: z.string().describe("Package ID")
         },
         async ({ access_key, pkg }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/encodingFiles.json", {
+            const result = await client.get("/info/v1/video/encodingFiles.json", {
                 key: accessKey,
                 access_key,
                 pkg,
@@ -99,7 +99,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
             expire: z.number().describe("Expiration time in seconds")
         },
         async ({ access_key, expire }) => {
-            const result = await client.get("https://api.wecandeo.com/info/auth/accessKey.json", {
+            const result = await client.get("/info/auth/accessKey.json", {
                 key: accessKey,
                 access_key,
                 expire: expire.toString(),
@@ -114,7 +114,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
         "Retrieve thumbnail image info for a video.",
         { access_key: z.string().describe("Video access key") },
         async ({ access_key }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v2/video/thumbnails.json", {
+            const result = await client.get("/info/v2/video/thumbnails.json", {
                 key: accessKey,
                 access_key,
             });
@@ -128,7 +128,7 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
         "Retrieve caption file info for a video.",
         { access_key: z.string().describe("Video access key") },
         async ({ access_key }) => {
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/caption.json", {
+            const result = await client.get("/info/v1/video/caption.json", {
                 key: accessKey,
                 access_key,
             });
