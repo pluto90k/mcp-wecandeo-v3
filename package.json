@@ -1,24 +1,29 @@
 {
-	"name": "mcp-wecandeo-v3",
-	"version": "0.0.0",
-	"private": true,
-	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
-		"start": "wrangler dev",
-		"test": "vitest",
-		"cf-typegen": "wrangler types"
+	"name": "wecandeo-mcp",
+	"version": "1.0.0",
+	"description": "Wecandeo VideoPack MCP Server - 32 tools for video management via MCP protocol",
+	"type": "module",
+	"bin": {
+		"wecandeo-mcp": "./dist/index.js"
 	},
+	"scripts": {
+		"build": "tsc",
+		"start": "node dist/index.js",
+		"prepare": "npm run build"
+	},
+	"keywords": [
+		"mcp",
+		"wecandeo",
+		"videopack",
+		"video"
+	],
+	"license": "MIT",
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.12.4",
-		"@types/node": "^25.3.3",
-		"typescript": "^5.5.2",
-		"vitest": "~3.2.0",
-		"wrangler": "^4.70.0"
+		"@types/node": "^22.0.0",
+		"typescript": "^5.5.2"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.27.1",
-		"hono": "^4.12.5",
 		"zod": "^4.3.6"
 	}
 }

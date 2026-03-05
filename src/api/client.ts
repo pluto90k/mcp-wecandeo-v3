@@ -6,6 +6,10 @@ export class WecandeoClient {
         this.accessKey = accessKey;
     }
 
+    getAccessKey(): string {
+        return this.accessKey;
+    }
+
     private async request(path: string, options: RequestInit = {}) {
         const url = `${this.baseUrl}${path}`;
         const headers = {

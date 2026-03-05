@@ -5,7 +5,9 @@ import { z } from "zod";
 /**
  * Video Data Update API Group Tools (16-23)
  */
-export function registerVideoUpdateTools(server: McpServer) {
+export function registerVideoUpdateTools(server: McpServer, client: WecandeoClient) {
+    const accessKey = client.getAccessKey();
+
     // 16. Add Video to Package
     server.tool(
         "wecandeo_video_add_to_package",
@@ -14,11 +16,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             pkg: z.string().describe("Package ID")
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ access_key, pkg }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/set/package.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 pkg,
             });
@@ -34,11 +34,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             pkg: z.string().describe("Package ID")
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ access_key, pkg }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/set/exclude.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 pkg,
             });
@@ -54,11 +52,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             pkg: z.string().describe("Package ID")
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ access_key, pkg }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/set/publish.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 pkg,
             });
@@ -74,11 +70,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             pkg: z.string().describe("Package ID")
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ access_key, pkg }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/set/pause.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 pkg,
             });
@@ -94,11 +88,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             folder: z.string().describe("Target folder ID")
         },
-        async ({ access_key, folder }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ access_key, folder }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/set/folder.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 folder,
             });
@@ -118,12 +110,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             series: z.string().optional().describe("Series name"),
             desc: z.string().optional().describe("Video description"),
         },
-        async ({ access_key, ...params }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            // Filter out undefined values
+        async ({ access_key, ...params }) => {
             const queryParams: Record<string, string> = {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
             };
             Object.entries(params).forEach(([k, v]) => {
@@ -144,11 +133,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             viral_url: z.string().optional().describe("Viral link URL"),
             price: z.number().optional().describe("Price value"),
         },
-        async ({ access_key, enable, ...params }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ access_key, enable, ...params }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/set/viral.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 enable: enable.toString(),
                 ...params as any,
@@ -165,11 +152,9 @@ export function registerVideoUpdateTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             seq: z.number().describe("Thumbnail sequence number (1-6)")
         },
-        async ({ access_key, seq }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ access_key, seq }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/set/thumbnail.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 seq: seq.toString(),
             });

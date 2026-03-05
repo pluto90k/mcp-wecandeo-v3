@@ -5,17 +5,17 @@ import { z } from "zod";
 /**
  * Package API Group Tools (24-30)
  */
-export function registerPackageTools(server: McpServer) {
+export function registerPackageTools(server: McpServer, client: WecandeoClient) {
+    const accessKey = client.getAccessKey();
+
     // 24. Package List
     server.tool(
         "wecandeo_package_list",
         "Retrieve list of all distribution packages.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async () => {
             const result = await client.get("https://api.wecandeo.com/info/v1/packages.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
         }
@@ -26,11 +26,9 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_publish_all",
         "Start publishing all videos in a specific package.",
         { package_id: z.string().describe("Package ID") },
-        async ({ package_id }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ package_id }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/packages/all/publish.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 package_id,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
@@ -42,11 +40,9 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_unpublish_all",
         "Pause publishing all videos in a specific package.",
         { package_id: z.string().describe("Package ID") },
-        async ({ package_id }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ package_id }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/packages/all/unpublish.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 package_id,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
@@ -61,11 +57,9 @@ export function registerPackageTools(server: McpServer) {
             package_id: z.string().describe("Package ID"),
             domains: z.string().describe("Comma-separated list of domains to block")
         },
-        async ({ package_id, domains }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ package_id, domains }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/packages/set/block/domain.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 package_id,
                 domains,
             });
@@ -81,11 +75,9 @@ export function registerPackageTools(server: McpServer) {
             package_id: z.string().describe("Package ID"),
             domains: z.string().describe("Comma-separated list of domains to unblock")
         },
-        async ({ package_id, domains }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ package_id, domains }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/packages/set/unblock/domain.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 package_id,
                 domains,
             });
@@ -98,11 +90,9 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_playlists",
         "Retrieve list of playlists.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async () => {
             const result = await client.get("https://api.wecandeo.com/info/v1/playlist/list.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
         }
@@ -113,11 +103,9 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_playlist_details",
         "Get details of a specific playlist.",
         { playlistKey: z.string().describe("Playlist Key") },
-        async ({ playlistKey }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async ({ playlistKey }) => {
             const result = await client.get("https://api.wecandeo.com/info/v1/playlist.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 playlistKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };

@@ -1,32 +1,37 @@
-import { Hono } from "hono";
+#!/usr/bin/env node
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { WecandeoClient } from "./api/client.js";
 import { registerUploadTools } from "./tools/upload.js";
 import { registerVideoTools } from "./tools/video.js";
 import { registerVideoUpdateTools } from "./tools/video_update.js";
 import { registerPackageTools } from "./tools/package.js";
 import { registerArchiveTools } from "./tools/archive.js";
 
-type Env = {
-	WECANDEO_ACCESS_KEY: string;
-};
+async function main() {
+	const accessKey = process.env.WECANDEO_ACCESS_KEY;
+	if (!accessKey) {
+		console.error("Error: WECANDEO_ACCESS_KEY environment variable is required.");
+		console.error("Usage: WECANDEO_ACCESS_KEY=your_key npx wecandeo-mcp");
+		process.exit(1);
+	}
 
-const app = new Hono<{ Bindings: Env }>();
+	const client = new WecandeoClient(accessKey);
 
-// Factory function to create a new, fully initialized server and transport for each request
-async function createServerAndTransport() {
 	const server = new McpServer({
 		name: "wecandeo-videopack-mcp",
 		version: "1.0.0",
 	});
 
-	// Register all tools
-	registerUploadTools(server);
-	registerVideoTools(server);
-	registerVideoUpdateTools(server);
-	registerPackageTools(server);
-	registerArchiveTools(server);
+	// Register all tool groups
+	registerUploadTools(server, client);
+	registerVideoTools(server, client);
+	registerVideoUpdateTools(server, client);
+	registerPackageTools(server, client);
+	registerArchiveTools(server, client);
 
+	// Ping tool for health check
 	server.tool(
 		"ping",
 		"Check if the Wecandeo MCP server is responsive",
@@ -36,54 +41,14 @@ async function createServerAndTransport() {
 		})
 	);
 
-	// Stateless transport
-	const transport = new WebStandardStreamableHTTPServerTransport({});
+	// Connect via stdio
+	const transport = new StdioServerTransport();
 	await server.connect(transport);
 
-	return { server, transport };
+	console.error("Wecandeo MCP Server started (stdio mode)");
 }
 
-app.get("/", (c) => {
-	return c.text("Wecandeo MCP Server (Web Standard, Stateless) - Running");
+main().catch((error) => {
+	console.error("Fatal error:", error);
+	process.exit(1);
 });
-
-// All MCP requests
-app.all("/mcp", async (c) => {
-	console.log(`MCP Request: ${c.req.method} ${c.req.url}`);
-	try {
-		const { transport } = await createServerAndTransport();
-		return transport.handleRequest(c.req.raw, {
-			authInfo: c.env as any,
-		});
-	} catch (error: any) {
-		console.error("MCP Handler Error:", error);
-		return c.json({
-			jsonrpc: "2.0",
-			error: {
-				code: -32000,
-				message: `Server failed to start: ${error.message}`
-			}
-		}, 500);
-	}
-});
-
-// Compatibility routes
-app.all("/sse", async (c) => {
-	try {
-		const { transport } = await createServerAndTransport();
-		return transport.handleRequest(c.req.raw, { authInfo: c.env as any });
-	} catch (error: any) {
-		return c.json({ error: error.message }, 500);
-	}
-});
-
-app.all("/message", async (c) => {
-	try {
-		const { transport } = await createServerAndTransport();
-		return transport.handleRequest(c.req.raw, { authInfo: c.env as any });
-	} catch (error: any) {
-		return c.json({ error: error.message }, 500);
-	}
-});
-
-export default app;

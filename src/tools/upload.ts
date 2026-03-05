@@ -5,18 +5,17 @@ import { z } from "zod";
 /**
  * Upload API Group Tools (1-7)
  */
-export function registerUploadTools(server: McpServer) {
+export function registerUploadTools(server: McpServer, client: WecandeoClient) {
+    const accessKey = client.getAccessKey();
+
     // 1. Create Upload Ticket (Token)
     server.tool(
         "wecandeo_upload_create_ticket",
         "Create an upload ticket (token) for video uploading. Returns uploadUrl and token.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            // GET https://api.wecandeo.com/web/v3/uploadToken.json?key={API key}
+        async () => {
             const result = await client.get("https://api.wecandeo.com/web/v3/uploadToken.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
             });
             return {
                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
@@ -35,8 +34,7 @@ export function registerUploadTools(server: McpServer) {
             folder: z.string().describe("Target folder ID in media archive"),
             title: z.string().optional().describe("Video title"),
         },
-        async ({ uploadUrl, token, sourceUrl, folder, title }, context: any) => {
-            const env = context.auth as any;
+        async ({ uploadUrl, token, sourceUrl, folder, title }) => {
             const fileResponse = await fetch(sourceUrl);
             if (!fileResponse.ok) throw new Error(`Source fetch failed: ${fileResponse.statusText}`);
 
@@ -68,7 +66,7 @@ export function registerUploadTools(server: McpServer) {
             uploadUrl: z.string().describe("The upload URL obtained from create_ticket"),
             token: z.string().describe("The upload token"),
         },
-        async ({ uploadUrl, token }, context: any) => {
+        async ({ uploadUrl, token }) => {
             const response = await fetch(`${uploadUrl}/uploadStatus.json?token=${token}`);
             const result = await response.json();
             return {
@@ -85,12 +83,9 @@ export function registerUploadTools(server: McpServer) {
             access_key: z.string().describe("The video access key (original key)"),
             pkg: z.number().describe("The package ID"),
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            // GET https://api.wecandeo.com/web/encoding/status.json
+        async ({ access_key, pkg }) => {
             const result = await client.get("https://api.wecandeo.com/web/encoding/status.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
                 access_key,
                 pkg: pkg.toString(),
             });
@@ -110,7 +105,7 @@ export function registerUploadTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             imageUrl: z.string().describe("URL of the thumbnail image to upload"),
         },
-        async ({ thumbnailUploadUrl, token, access_key, imageUrl }, context: any) => {
+        async ({ thumbnailUploadUrl, token, access_key, imageUrl }) => {
             const imgResponse = await fetch(imageUrl);
             const blob = await imgResponse.blob();
 
@@ -142,7 +137,7 @@ export function registerUploadTools(server: McpServer) {
             lang_id: z.number().describe("Language ID"),
             captionUrl: z.string().describe("URL of the caption file (.vtt)"),
         },
-        async ({ captionUploadUrl, token, access_key, lang_id, captionUrl }, context: any) => {
+        async ({ captionUploadUrl, token, access_key, lang_id, captionUrl }) => {
             const capResponse = await fetch(captionUrl);
             const blob = await capResponse.blob();
 
@@ -169,11 +164,9 @@ export function registerUploadTools(server: McpServer) {
         "wecandeo_upload_caption_language",
         "Retrieve list of supported caption languages and their IDs.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
+        async () => {
             const result = await client.get("https://api.wecandeo.com/info/v1/video/caption/language.json", {
-                key: env.WECANDEO_ACCESS_KEY,
+                key: accessKey,
             });
             return {
                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
