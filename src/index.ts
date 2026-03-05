@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { WecandeoClient } from "./api/client.js";
@@ -9,11 +10,14 @@ import { registerVideoUpdateTools } from "./tools/video_update.js";
 import { registerPackageTools } from "./tools/package.js";
 import { registerArchiveTools } from "./tools/archive.js";
 
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json");
+
 async function main() {
 	const accessKey = process.env.WECANDEO_ACCESS_KEY;
 	if (!accessKey) {
 		console.error("Error: WECANDEO_ACCESS_KEY environment variable is required.");
-		console.error("Usage: WECANDEO_ACCESS_KEY=your_key npx wecandeo-mcp");
+		console.error("Usage: WECANDEO_ACCESS_KEY=your_key npx @pluto90/wecandeo-v3-mcp");
 		process.exit(1);
 	}
 
@@ -21,7 +25,7 @@ async function main() {
 
 	const server = new McpServer({
 		name: "wecandeo-videopack-mcp",
-		version: "1.0.0",
+		version,
 	});
 
 	// Register all tool groups
