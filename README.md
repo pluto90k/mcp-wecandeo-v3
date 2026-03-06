@@ -10,10 +10,20 @@ Cloudflare Workers based MCP server for Wecandeo VideoPack API.
 - **Package APIs**: Explore packages, global publish actions, domain restrictions, and playlists.
 - **Media Archive**: Manage folders.
 
-## Setup
+## Prerequisites & API Key
+
+To use this MCP server, you need an active Wecandeo account and an API Access Key.
+
+1. **Sign up / Login**: Go to the [Wecandeo Official Website](https://www.wecandeo.com) and log in.
+2. **Issue API Key**: Navigate to the Developer or API Settings menu in your VideoPack console to generate an `ACCESS_KEY`.
+3. **Support**: If you need help with API limits or account details, please visit the [Wecandeo Support Center](https://support.wecandeo.com).
+
+---
+
+## Setup (For Server Deployment)
 
 1. **Environment Variables**:
-   - `WECANDEO_ACCESS_KEY`: Your Wecandeo API Key.
+   - `WECANDEO_ACCESS_KEY`: Your Wecandeo API Key (used internally if deploying).
 
 2. **Deployment**:
    - Use GitHub Actions (configured in `.github/workflows/deploy.yml`).
