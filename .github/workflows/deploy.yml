@@ -3,7 +3,7 @@ name: Deploy Wecandeo MCP Server
 on:
   push:
     branches:
-      - main
+      - refactor/cloudflare
   workflow_dispatch:
 
 jobs:
