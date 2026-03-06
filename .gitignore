@@ -165,3 +165,6 @@ dist
 .env*
 !.env.example
 .wrangler/
+
+# MCP config (contains API keys)
+.mcp.json

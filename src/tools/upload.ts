@@ -1,6 +1,8 @@
 import { WecandeoClient } from "../api/client.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 /**
  * Upload API Group Tools (1-7)
@@ -35,16 +37,42 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
             title: z.string().optional().describe("Video title"),
         },
         async ({ uploadUrl, token, sourceUrl, folder, title }) => {
-            const fileResponse = await fetch(sourceUrl);
-            if (!fileResponse.ok) throw new Error(`Source fetch failed: ${fileResponse.statusText}`);
+            const isLocalFile = !sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://");
+            let blob: Blob;
+            let fileName: string;
+
+            if (isLocalFile) {
+                // Local file path
+                try {
+                    const buffer = await readFile(sourceUrl);
+                    blob = new Blob([buffer]);
+                    fileName = path.basename(sourceUrl);
+                } catch (err: any) {
+                    return {
+                        content: [{ type: "text", text: `Error: Cannot read local file: ${err.message}` }],
+                    };
+                }
+            } else {
+                // Remote URL - verify accessibility first
+                const headResponse = await fetch(sourceUrl, { method: "HEAD" });
+                if (!headResponse.ok) {
+                    return {
+                        content: [{ type: "text", text: `Error: sourceUrl is not accessible (${headResponse.status} ${headResponse.statusText}). Please check the URL.` }],
+                    };
+                }
+
+                const fileResponse = await fetch(sourceUrl);
+                if (!fileResponse.ok) throw new Error(`Source fetch failed: ${fileResponse.statusText}`);
+                blob = await fileResponse.blob();
+                fileName = "video.mp4";
+            }
 
             const formData = new FormData();
             formData.append("token", token);
             formData.append("folder", folder);
             if (title) formData.append("title", title);
 
-            const blob = await fileResponse.blob();
-            formData.append("videofile", blob, "video.mp4");
+            formData.append("videofile", blob, fileName);
 
             const uploadResponse = await fetch(`${uploadUrl}?token=${token}`, {
                 method: "POST",
