@@ -32,8 +32,15 @@ function setupServer(server: McpServer, accessKey: string) {
 }
 
 // 1. Node.js CLI Handling (Stdio)
-const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
-if (isNode) {
+// Check both process existence and stdin/stdout to avoid false positives in Worker environments with nodejs_compat
+const isNodeCLI = typeof process !== "undefined" &&
+	process.versions &&
+	process.versions.node &&
+	process.stdin &&
+	process.stdout &&
+	!((globalThis as any).caches); // Cloudflare Workers usually have 'caches' global
+
+if (isNodeCLI) {
 	const accessKey = process.env.WECANDEO_ACCESS_KEY;
 	if (!accessKey) {
 		console.error("Error: WECANDEO_ACCESS_KEY environment variable is required.");
