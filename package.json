@@ -1,11 +1,13 @@
 {
 	"name": "mcp-wecandeo-v3",
 	"version": "0.0.0",
-	"private": true,
+	"bin": "./dist/index.js",
+	"type": "module",
 	"scripts": {
+		"build": "tsc",
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
-		"start": "wrangler dev",
+		"start": "node dist/index.js",
 		"test": "vitest",
 		"cf-typegen": "wrangler types"
 	},

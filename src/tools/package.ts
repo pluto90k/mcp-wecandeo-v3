@@ -5,19 +5,26 @@ import { z } from "zod";
 /**
  * Package API Group Tools (24-30)
  */
-export function registerPackageTools(server: McpServer) {
+export function registerPackageTools(server: McpServer, client: WecandeoClient) {
+    const accessKey = client.getAccessKey();
+
+    // -- Tools --
+
     // 24. Package List
     server.tool(
         "wecandeo_package_list",
         "Retrieve list of all distribution packages.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async () => {
+            try {
+                const result = await client.get("/info/v1/packages.json", { key: accessKey });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to list packages: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -26,14 +33,19 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_publish_all",
         "Start publishing all videos in a specific package.",
         { package_id: z.string().describe("Package ID") },
-        async ({ package_id }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/all/publish.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                package_id,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ package_id }) => {
+            try {
+                const result = await client.get("/info/v1/packages/all/publish.json", {
+                    key: accessKey,
+                    package_id,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to publish all: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -42,14 +54,19 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_unpublish_all",
         "Pause publishing all videos in a specific package.",
         { package_id: z.string().describe("Package ID") },
-        async ({ package_id }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/all/unpublish.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                package_id,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ package_id }) => {
+            try {
+                const result = await client.get("/info/v1/packages/all/unpublish.json", {
+                    key: accessKey,
+                    package_id,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to unpublish all: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -61,15 +78,20 @@ export function registerPackageTools(server: McpServer) {
             package_id: z.string().describe("Package ID"),
             domains: z.string().describe("Comma-separated list of domains to block")
         },
-        async ({ package_id, domains }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/set/block/domain.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                package_id,
-                domains,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ package_id, domains }) => {
+            try {
+                const result = await client.get("/info/v1/packages/set/block/domain.json", {
+                    key: accessKey,
+                    package_id,
+                    domains,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to block domain: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -81,15 +103,20 @@ export function registerPackageTools(server: McpServer) {
             package_id: z.string().describe("Package ID"),
             domains: z.string().describe("Comma-separated list of domains to unblock")
         },
-        async ({ package_id, domains }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/packages/set/unblock/domain.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                package_id,
-                domains,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ package_id, domains }) => {
+            try {
+                const result = await client.get("/info/v1/packages/set/unblock/domain.json", {
+                    key: accessKey,
+                    package_id,
+                    domains,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to unblock domain: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -98,13 +125,16 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_playlists",
         "Retrieve list of playlists.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/playlist/list.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async () => {
+            try {
+                const result = await client.get("/info/v1/playlist/list.json", { key: accessKey });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to list playlists: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -113,14 +143,38 @@ export function registerPackageTools(server: McpServer) {
         "wecandeo_package_playlist_details",
         "Get details of a specific playlist.",
         { playlistKey: z.string().describe("Playlist Key") },
-        async ({ playlistKey }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/playlist.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                playlistKey,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ playlistKey }) => {
+            try {
+                const result = await client.get("/info/v1/playlist.json", {
+                    key: accessKey,
+                    playlistKey,
+                    access_key: accessKey, // Some endpoints might require it differently but client.get usually handles query
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to get playlist details: ${error.message}` }]
+                };
+            }
+        }
+    );
+
+    // -- Resources --
+
+    // Resource: Packages
+    server.resource(
+        "packages",
+        "wecandeo://packages",
+        async (uri) => {
+            const result = await client.get("/info/v1/packages.json", { key: accessKey });
+            return {
+                contents: [{
+                    uri: uri.href,
+                    text: JSON.stringify(result, null, 2),
+                    mimeType: "application/json"
+                }]
+            };
         }
     );
 }

@@ -5,22 +5,29 @@ import { z } from "zod";
 /**
  * Upload API Group Tools (1-7)
  */
-export function registerUploadTools(server: McpServer) {
+export function registerUploadTools(server: McpServer, client: WecandeoClient) {
+    const accessKey = client.getAccessKey();
+
     // 1. Create Upload Ticket (Token)
     server.tool(
         "wecandeo_upload_create_ticket",
         "Create an upload ticket (token) for video uploading. Returns uploadUrl and token.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            // GET https://api.wecandeo.com/web/v3/uploadToken.json?key={API key}
-            const result = await client.get("https://api.wecandeo.com/web/v3/uploadToken.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-            });
-            return {
-                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-            };
+        async () => {
+            try {
+                // GET https://api.wecandeo.com/web/v3/uploadToken.json?key={API key}
+                const result = await client.get("/web/v3/uploadToken.json", {
+                    key: accessKey,
+                });
+                return {
+                    content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to create upload ticket: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -35,28 +42,77 @@ export function registerUploadTools(server: McpServer) {
             folder: z.string().describe("Target folder ID in media archive"),
             title: z.string().optional().describe("Video title"),
         },
-        async ({ uploadUrl, token, sourceUrl, folder, title }, context: any) => {
-            const env = context.auth as any;
-            const fileResponse = await fetch(sourceUrl);
-            if (!fileResponse.ok) throw new Error(`Source fetch failed: ${fileResponse.statusText}`);
+        async ({ uploadUrl, token, sourceUrl, folder, title }) => {
+            try {
+                const isLocalFile = !sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://");
+                let blob: Blob;
+                let fileName: string;
 
-            const formData = new FormData();
-            formData.append("token", token);
-            formData.append("folder", folder);
-            if (title) formData.append("title", title);
+                if (isLocalFile) {
+                    // Local file path (Might fail in standard Cloudflare Worker environment)
+                    try {
+                        const fs = await import("node:fs/promises");
+                        const path = await import("node:path");
+                        const buffer = await fs.readFile(sourceUrl);
+                        blob = new Blob([buffer]);
+                        fileName = path.basename(sourceUrl);
+                    } catch (err: any) {
+                        return {
+                            isError: true,
+                            content: [{ type: "text", text: `Error: Cannot read local file (might not be supported in this environment): ${err.message}` }],
+                        };
+                    }
+                } else {
+                    // Remote URL - verify accessibility first
+                    try {
+                        const headResponse = await fetch(sourceUrl, { method: "HEAD" });
+                        if (!headResponse.ok) {
+                            return {
+                                isError: true,
+                                content: [{ type: "text", text: `Error: sourceUrl is not accessible (${headResponse.status} ${headResponse.statusText}). Please check the URL.` }],
+                            };
+                        }
 
-            const blob = await fileResponse.blob();
-            formData.append("videofile", blob, "video.mp4");
+                        const fileResponse = await fetch(sourceUrl);
+                        if (!fileResponse.ok) throw new Error(`Source fetch failed: ${fileResponse.statusText}`);
+                        blob = await fileResponse.blob();
 
-            const uploadResponse = await fetch(`${uploadUrl}?token=${token}`, {
-                method: "POST",
-                body: formData
-            });
+                        try {
+                            const url = new URL(sourceUrl);
+                            fileName = url.pathname.split('/').pop() || "video.mp4";
+                        } catch {
+                            fileName = "video.mp4";
+                        }
+                    } catch (err: any) {
+                        return {
+                            isError: true,
+                            content: [{ type: "text", text: `Error: Failed to fetch source URL: ${err.message}` }],
+                        };
+                    }
+                }
 
-            const result = await uploadResponse.text();
-            return {
-                content: [{ type: "text", text: result }],
-            };
+                const formData = new FormData();
+                formData.append("token", token);
+                formData.append("folder", folder);
+                if (title) formData.append("title", title);
+
+                formData.append("videofile", blob, fileName);
+
+                const uploadResponse = await fetch(`${uploadUrl}?token=${token}`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await uploadResponse.json();
+                return {
+                    content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Upload failed: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -68,12 +124,20 @@ export function registerUploadTools(server: McpServer) {
             uploadUrl: z.string().describe("The upload URL obtained from create_ticket"),
             token: z.string().describe("The upload token"),
         },
-        async ({ uploadUrl, token }, context: any) => {
-            const response = await fetch(`${uploadUrl}/uploadStatus.json?token=${token}`);
-            const result = await response.json();
-            return {
-                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-            };
+        async ({ uploadUrl, token }) => {
+            try {
+                const response = await fetch(`${uploadUrl}/uploadStatus.json?token=${token}`);
+                if (!response.ok) throw new Error(`Status check failed: ${response.statusText}`);
+                const result = await response.json();
+                return {
+                    content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to check upload progress: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -85,18 +149,23 @@ export function registerUploadTools(server: McpServer) {
             access_key: z.string().describe("The video access key (original key)"),
             pkg: z.number().describe("The package ID"),
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            // GET https://api.wecandeo.com/web/encoding/status.json
-            const result = await client.get("https://api.wecandeo.com/web/encoding/status.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                access_key,
-                pkg: pkg.toString(),
-            });
-            return {
-                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-            };
+        async ({ access_key, pkg }) => {
+            try {
+                // GET https://api.wecandeo.com/web/encoding/status.json
+                const result = await client.get("/web/encoding/status.json", {
+                    key: accessKey,
+                    access_key,
+                    pkg: pkg.toString(),
+                });
+                return {
+                    content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to check encoding status: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -110,24 +179,33 @@ export function registerUploadTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             imageUrl: z.string().describe("URL of the thumbnail image to upload"),
         },
-        async ({ thumbnailUploadUrl, token, access_key, imageUrl }, context: any) => {
-            const imgResponse = await fetch(imageUrl);
-            const blob = await imgResponse.blob();
+        async ({ thumbnailUploadUrl, token, access_key, imageUrl }) => {
+            try {
+                const imgResponse = await fetch(imageUrl);
+                if (!imgResponse.ok) throw new Error(`Failed to fetch thumbnail image: ${imgResponse.statusText}`);
+                const blob = await imgResponse.blob();
 
-            const formData = new FormData();
-            formData.append("token", token);
-            formData.append("access_key", access_key);
-            formData.append("imagefile", blob, "thumbnail.jpg");
+                const formData = new FormData();
+                formData.append("token", token);
+                formData.append("access_key", access_key);
+                formData.append("imagefile", blob, "thumbnail.jpg");
 
-            const response = await fetch(`${thumbnailUploadUrl}?token=${token}`, {
-                method: "POST",
-                body: formData
-            });
+                const response = await fetch(`${thumbnailUploadUrl}?token=${token}`, {
+                    method: "POST",
+                    body: formData
+                });
 
-            const result = await response.text();
-            return {
-                content: [{ type: "text", text: result }],
-            };
+                if (!response.ok) throw new Error(`Thumbnail upload failed: ${response.statusText}`);
+                const result = await response.json();
+                return {
+                    content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Thumbnail upload failed: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -142,25 +220,34 @@ export function registerUploadTools(server: McpServer) {
             lang_id: z.number().describe("Language ID"),
             captionUrl: z.string().describe("URL of the caption file (.vtt)"),
         },
-        async ({ captionUploadUrl, token, access_key, lang_id, captionUrl }, context: any) => {
-            const capResponse = await fetch(captionUrl);
-            const blob = await capResponse.blob();
+        async ({ captionUploadUrl, token, access_key, lang_id, captionUrl }) => {
+            try {
+                const capResponse = await fetch(captionUrl);
+                if (!capResponse.ok) throw new Error(`Failed to fetch caption file: ${capResponse.statusText}`);
+                const blob = await capResponse.blob();
 
-            const formData = new FormData();
-            formData.append("token", token);
-            formData.append("access_key", access_key);
-            formData.append("lang_id", lang_id.toString());
-            formData.append("captionfile", blob, "caption.vtt");
+                const formData = new FormData();
+                formData.append("token", token);
+                formData.append("access_key", access_key);
+                formData.append("lang_id", lang_id.toString());
+                formData.append("captionfile", blob, "caption.vtt");
 
-            const response = await fetch(`${captionUploadUrl}?token=${token}&access_key=${access_key}&lang_id=${lang_id}`, {
-                method: "POST",
-                body: formData
-            });
+                const response = await fetch(`${captionUploadUrl}?token=${token}&access_key=${access_key}&lang_id=${lang_id}`, {
+                    method: "POST",
+                    body: formData
+                });
 
-            const result = await response.text();
-            return {
-                content: [{ type: "text", text: result }],
-            };
+                if (!response.ok) throw new Error(`Caption upload failed: ${response.statusText}`);
+                const result = await response.json();
+                return {
+                    content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Caption upload failed: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -169,15 +256,20 @@ export function registerUploadTools(server: McpServer) {
         "wecandeo_upload_caption_language",
         "Retrieve list of supported caption languages and their IDs.",
         {},
-        async (_, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/caption/language.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-            });
-            return {
-                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-            };
+        async () => {
+            try {
+                const result = await client.get("/info/v1/video/caption/language.json", {
+                    key: accessKey,
+                });
+                return {
+                    content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to list caption languages: ${error.message}` }]
+                };
+            }
         }
     );
 }

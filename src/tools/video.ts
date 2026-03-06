@@ -5,20 +5,27 @@ import { z } from "zod";
 /**
  * Video Data Retrieve API Group Tools (8-15)
  */
-export function registerVideoTools(server: McpServer) {
+export function registerVideoTools(server: McpServer, client: WecandeoClient) {
+    const accessKey = client.getAccessKey();
+
     // 8. Video List (Package)
     server.tool(
         "wecandeo_video_list_package",
         "Retrieve video list filtered by package ID.",
         { pkg: z.string().describe("Package ID") },
-        async ({ pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/videos.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                pkg,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ pkg }) => {
+            try {
+                const result = await client.get("/info/v1/videos.json", {
+                    key: accessKey,
+                    pkg,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to list videos in package: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -27,14 +34,19 @@ export function registerVideoTools(server: McpServer) {
         "wecandeo_video_list_folder",
         "Retrieve video list filtered by folder ID.",
         { folder: z.string().describe("Folder ID") },
-        async ({ folder }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/folder/videos.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                folder,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ folder }) => {
+            try {
+                const result = await client.get("/info/v1/folder/videos.json", {
+                    key: accessKey,
+                    folder,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to list videos in folder: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -46,15 +58,20 @@ export function registerVideoTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             pkg: z.string().describe("Package ID")
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/detail.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                access_key,
-                pkg,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ access_key, pkg }) => {
+            try {
+                const result = await client.get("/info/v1/video/detail.json", {
+                    key: accessKey,
+                    access_key,
+                    pkg,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to get video details: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -66,15 +83,20 @@ export function registerVideoTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             pkg: z.string().describe("Package ID")
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/publishInfo.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                access_key,
-                pkg,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ access_key, pkg }) => {
+            try {
+                const result = await client.get("/info/v1/video/publishInfo.json", {
+                    key: accessKey,
+                    access_key,
+                    pkg,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to get publish info: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -86,15 +108,20 @@ export function registerVideoTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             pkg: z.string().describe("Package ID")
         },
-        async ({ access_key, pkg }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/encodingFiles.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                access_key,
-                pkg,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ access_key, pkg }) => {
+            try {
+                const result = await client.get("/info/v1/video/encodingFiles.json", {
+                    key: accessKey,
+                    access_key,
+                    pkg,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to get encoded files: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -106,15 +133,20 @@ export function registerVideoTools(server: McpServer) {
             access_key: z.string().describe("Video access key"),
             expire: z.number().describe("Expiration time in seconds")
         },
-        async ({ access_key, expire }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/auth/accessKey.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                access_key,
-                expire: expire.toString(),
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ access_key, expire }) => {
+            try {
+                const result = await client.get("/info/auth/accessKey.json", {
+                    key: accessKey,
+                    access_key,
+                    expire: expire.toString(),
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to generate one-time key: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -123,14 +155,19 @@ export function registerVideoTools(server: McpServer) {
         "wecandeo_video_thumbnail",
         "Retrieve thumbnail image info for a video.",
         { access_key: z.string().describe("Video access key") },
-        async ({ access_key }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v2/video/thumbnails.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                access_key,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ access_key }) => {
+            try {
+                const result = await client.get("/info/v2/video/thumbnails.json", {
+                    key: accessKey,
+                    access_key,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to get thumbnails: ${error.message}` }]
+                };
+            }
         }
     );
 
@@ -139,14 +176,19 @@ export function registerVideoTools(server: McpServer) {
         "wecandeo_video_caption",
         "Retrieve caption file info for a video.",
         { access_key: z.string().describe("Video access key") },
-        async ({ access_key }, context: any) => {
-            const env = context.auth as any;
-            const client = new WecandeoClient(env.WECANDEO_ACCESS_KEY);
-            const result = await client.get("https://api.wecandeo.com/info/v1/video/caption.json", {
-                key: env.WECANDEO_ACCESS_KEY,
-                access_key,
-            });
-            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        async ({ access_key }) => {
+            try {
+                const result = await client.get("/info/v1/video/caption.json", {
+                    key: accessKey,
+                    access_key,
+                });
+                return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+            } catch (error: any) {
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Failed to get captions: ${error.message}` }]
+                };
+            }
         }
     );
 }
