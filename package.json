@@ -1,6 +1,6 @@
 {
 	"name": "@pluto90/wecandeo-v3-mcp",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "Wecandeo VideoPack v3 MCP Server - 32 tools for video management via MCP protocol",
 	"type": "module",
 	"author": "pluto90k <pluto90k@gmail.com>",
