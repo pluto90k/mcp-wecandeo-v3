@@ -1,10 +1,7 @@
 # Wecandeo VideoPack MCP Server
 
-> [!WARNING]  
-> 현재 버전은 임시로 생성된 MCP 서버입니다.
-
-Wecandeo VideoPack API를 위한 MCP(Model Context Protocol) 서버입니다.  
-Claude Desktop, Cursor 등 MCP 클라이언트에서 Wecandeo 비디오 관리 도구 32개를 Stdio 모드로 사용할 수 있습니다.
+Wecandeo VideoPack API를 위한 MCP(Model Context Protocol) 서버입니다.
+Claude Desktop, Claude Code, Cursor 등 MCP 클라이언트에서 Wecandeo 비디오 관리 도구 32개를 Stdio 모드로 사용할 수 있습니다.
 
 - **홈페이지**: [https://www.wecandeo.com](https://www.wecandeo.com)
 - **API 가이드**: [https://support.wecandeo.com](https://support.wecandeo.com)
@@ -35,6 +32,24 @@ WECANDEO_ACCESS_KEY=your_key npx @pluto90/wecandeo-v3-mcp
     "wecandeo": {
       "command": "npx",
       "args": ["-y", "@pluto90/wecandeo-v3-mcp"],
+      "env": {
+        "WECANDEO_ACCESS_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### Claude Code 설정
+
+`~/.claude.json` (글로벌) 또는 프로젝트 `.mcp.json`에 아래와 같이 추가합니다:
+
+```json
+{
+  "mcpServers": {
+    "wecandeo": {
+      "command": "npx",
+      "args": ["@pluto90/wecandeo-v3-mcp"],
       "env": {
         "WECANDEO_ACCESS_KEY": "your_api_key_here"
       }
@@ -76,7 +91,7 @@ WECANDEO_ACCESS_KEY=your_key node dist/index.js
 | 그룹 | 도구 | 설명 |
 |---|---|---|
 | **Upload** | `wecandeo_upload_create_ticket` | 업로드 토큰 생성 |
-| | `wecandeo_upload_video` | 비디오 업로드 |
+| | `wecandeo_upload_video` | 비디오 업로드 (로컬 파일 및 URL 지원) |
 | | `wecandeo_upload_progress` | 업로드 진행률 |
 | | `wecandeo_upload_encoding_status` | 인코딩 상태 |
 | | `wecandeo_upload_thumbnail` | 썸네일 업로드 |
