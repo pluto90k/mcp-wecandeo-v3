@@ -67,9 +67,13 @@ app.get("/", (c) => {
 
 // Stateless MCP Handler for Cloudflare
 app.all("/mcp", async (c) => {
-	const accessKey = c.env.WECANDEO_ACCESS_KEY;
+	const accessKey = c.req.header("X-Wecandeo-Access-Key") || c.req.query("key");
+
 	if (!accessKey) {
-		return c.json({ error: "WECANDEO_ACCESS_KEY not configured" }, 500);
+		return c.json({
+			error: "Unauthorized",
+			message: "X-Wecandeo-Access-Key header is required for user-specific authentication."
+		}, 401);
 	}
 
 	const server = new McpServer({
@@ -87,7 +91,9 @@ app.all("/mcp", async (c) => {
 
 // SSE compatibility
 app.all("/sse", async (c) => {
-	const accessKey = c.env.WECANDEO_ACCESS_KEY;
+	const accessKey = c.req.header("X-Wecandeo-Access-Key") || c.req.query("key");
+	if (!accessKey) return c.json({ error: "Unauthorized" }, 401);
+
 	const server = new McpServer({ name: "wecandeo-videopack-mcp", version: "1.0.0" });
 	setupServer(server, accessKey);
 	const transport = new WebStandardStreamableHTTPServerTransport({});
@@ -96,7 +102,9 @@ app.all("/sse", async (c) => {
 });
 
 app.all("/message", async (c) => {
-	const accessKey = c.env.WECANDEO_ACCESS_KEY;
+	const accessKey = c.req.header("X-Wecandeo-Access-Key") || c.req.query("key");
+	if (!accessKey) return c.json({ error: "Unauthorized" }, 401);
+
 	const server = new McpServer({ name: "wecandeo-videopack-mcp", version: "1.0.0" });
 	setupServer(server, accessKey);
 	const transport = new WebStandardStreamableHTTPServerTransport({});
