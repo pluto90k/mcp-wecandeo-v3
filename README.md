@@ -1,6 +1,6 @@
 # Wecandeo VideoPack MCP Server (v3)
 
-Cloudflare Workers based MCP server for Wecandeo VideoPack API.
+Wecandeo VideoPack API를 위한 MCP 서버입니다. **Cloudflare Workers** 배포와 **Node.js 인스턴스(pm2)** 실행을 모두 지원합니다.
 
 ## Features
 
@@ -20,43 +20,151 @@ To use this MCP server, you need an active Wecandeo account and an API Access Ke
 
 ---
 
-## Setup (For Server Deployment)
+## 실행 방식
 
-1. **Environment Variables**:
-   - `WECANDEO_ACCESS_KEY`: Your Wecandeo API Key (used internally if deploying).
+이 서버는 두 가지 방식으로 운영할 수 있습니다.
 
-2. **Deployment**:
-   - Use GitHub Actions (configured in `.github/workflows/deploy.yml`).
-   - Requires `CF_API_TOKEN` and `CF_ACCOUNT_ID` secrets in GitHub.
+| 방식 | 특징 | 적합한 환경 |
+| :--- | :--- | :--- |
+| **Node.js 인스턴스 (pm2)** | 서버에 상시 실행, 빠른 응답 | 온프레미스 서버, VPS |
+| **Cloudflare Workers** | 서버리스, 글로벌 엣지 | 무서버 운영, 퍼블릭 배포 |
 
-## Usage (MCP Client Setup)
+---
 
-Since this MCP server is deployed on Cloudflare Workers (which is stateless), you cannot connect to it using a standard local executable. Instead, you need to use an SSE bridge to connect your local MCP client (like Cursor, Claude Desktop, or Windsurf) to the remote server.
+## Node.js 인스턴스 (pm2)
 
-The recommended and most standard way to do this is using the generic `mcp-remote` npm package.
+### 사전 요구 사항
 
-### Configuration (`mcp_config.json` or `claude_desktop_config.json`)
+```bash
+npm install -g pm2
+```
 
-Add the following to your MCP client configuration file:
+### 1. 빌드
+
+```bash
+npm install
+npm run build
+```
+
+### 2. 환경 변수 설정
+
+`WECANDEO_ACCESS_KEY`를 환경 변수로 설정합니다.
+
+```bash
+export WECANDEO_ACCESS_KEY=your-api-key
+```
+
+또는 `ecosystem.config.cjs`에 직접 입력:
+
+```js
+// ecosystem.config.cjs
+env: {
+  NODE_ENV: "production",
+  PORT: 3000,
+  WECANDEO_ACCESS_KEY: "your-api-key",
+},
+```
+
+### 3. pm2로 시작
+
+```bash
+npm run pm2:start
+# 또는
+pm2 start ecosystem.config.cjs
+```
+
+### pm2 관리 명령어
+
+```bash
+npm run pm2:status    # 상태 확인
+npm run pm2:logs      # 로그 보기
+npm run pm2:restart   # 재시작
+npm run pm2:stop      # 중지
+```
+
+### 4. MCP 클라이언트 설정
+
+서버가 실행되면 아래 엔드포인트를 MCP 클라이언트에 연결합니다.
+
+- `http://localhost:3000/mcp` — Streamable HTTP (표준)
+- `http://localhost:3000/sse` — SSE 호환
+- `http://localhost:3000/health` — 헬스체크
+
+**Claude Desktop / Cursor / Windsurf 설정** (`claude_desktop_config.json` 또는 `mcp_config.json`):
 
 ```json
 {
   "mcpServers": {
     "wecandeo": {
-        "command": "npx",
-        "args": [
-            "-y",
-            "mcp-remote@latest",
-            "https://<your-worker-url>.workers.dev/sse?key=<YOUR_WECANDEO_ACCESS_KEY>"
-        ]
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "http://localhost:3000/mcp"
+      ]
     }
   }
 }
 ```
 
-- Replace `<your-worker-url>` with your actual Cloudflare Worker domain.
-- Replace `<YOUR_WECANDEO_ACCESS_KEY>` with your user-specific Wecandeo API Key.
-- *Note:* Depending on your environment, you may also pass the key via the `X-Wecandeo-Access-Key` HTTP header instead of the URL query parameter, but standard STDIO bridges usually find it easiest via the URL query.
+> API 키를 인스턴스에 설정하지 않은 경우, URL 쿼리 파라미터로 전달할 수 있습니다:
+> `http://localhost:3000/mcp?key=<YOUR_WECANDEO_ACCESS_KEY>`
+
+### 포트 변경
+
+`PORT` 환경 변수로 포트를 지정합니다 (기본값: `3000`).
+
+```bash
+PORT=8080 WECANDEO_ACCESS_KEY=your-key npm run start:instance
+```
+
+### pm2 시작 시 자동 실행 설정
+
+```bash
+pm2 startup        # 시스템 부팅 시 pm2 자동 실행 설정
+pm2 save           # 현재 프로세스 목록 저장
+```
+
+---
+
+## Cloudflare Workers 배포
+
+### 사전 요구 사항
+
+- Cloudflare 계정 및 `wrangler` CLI
+
+### 1. 환경 변수 설정
+
+```bash
+wrangler secret put WECANDEO_ACCESS_KEY
+```
+
+### 2. 배포
+
+```bash
+npm run deploy
+# 또는 GitHub Actions (CF_API_TOKEN, CF_ACCOUNT_ID 시크릿 필요)
+```
+
+### 3. MCP 클라이언트 설정
+
+```json
+{
+  "mcpServers": {
+    "wecandeo": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://<your-worker-url>.workers.dev/sse?key=<YOUR_WECANDEO_ACCESS_KEY>"
+      ]
+    }
+  }
+}
+```
+
+- `<your-worker-url>`을 실제 Cloudflare Worker 도메인으로 교체합니다.
+- `<YOUR_WECANDEO_ACCESS_KEY>`를 Wecandeo API 키로 교체합니다.
 
 ---
 
