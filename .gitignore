@@ -168,3 +168,6 @@ dist
 
 # MCP config
 .mcp.json
+
+# Claude Code
+.claude/
