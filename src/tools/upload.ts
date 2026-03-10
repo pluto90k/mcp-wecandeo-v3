@@ -9,13 +9,13 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
     const accessKey = client.getAccessKey();
 
     // 1. Create Upload Ticket (Token)
-    server.tool(
+    server.registerTool(
         "wecandeo_upload_create_ticket",
-        "Create an upload ticket (token) for video uploading. Returns uploadUrl and token.",
-        {},
+        {
+            description: "Create an upload ticket (token) for video uploading. Returns uploadUrl and token.",
+        },
         async () => {
             try {
-                // GET https://api.wecandeo.com/web/v3/uploadToken.json?key={API key}
                 const result = await client.get("/web/v3/uploadToken.json", {
                     key: accessKey,
                 });
@@ -32,15 +32,17 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 2. Upload Video File
-    server.tool(
+    server.registerTool(
         "wecandeo_upload_video",
-        "Upload a video file to Wecandeo using a sourceUrl.",
         {
-            uploadUrl: z.string().describe("The upload URL obtained from create_ticket"),
-            token: z.string().describe("The upload token obtained from create_ticket"),
-            sourceUrl: z.string().describe("The external URL of the video file to be uploaded"),
-            folder: z.string().describe("Target folder ID in media archive"),
-            title: z.string().optional().describe("Video title"),
+            description: "Upload a video file to Wecandeo using a sourceUrl.",
+            inputSchema: {
+                uploadUrl: z.string().describe("The upload URL obtained from create_ticket"),
+                token: z.string().describe("The upload token obtained from create_ticket"),
+                sourceUrl: z.string().describe("The external URL of the video file to be uploaded"),
+                folder: z.string().describe("Target folder ID in media archive"),
+                title: z.string().optional().describe("Video title"),
+            },
         },
         async ({ uploadUrl, token, sourceUrl, folder, title }) => {
             try {
@@ -49,7 +51,6 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
                 let fileName: string;
 
                 if (isLocalFile) {
-                    // Local file path (Might fail in standard Cloudflare Worker environment)
                     try {
                         const fs = await import("node:fs/promises");
                         const path = await import("node:path");
@@ -63,7 +64,6 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
                         };
                     }
                 } else {
-                    // Remote URL - verify accessibility first
                     try {
                         const headResponse = await fetch(sourceUrl, { method: "HEAD" });
                         if (!headResponse.ok) {
@@ -95,7 +95,6 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
                 formData.append("token", token);
                 formData.append("folder", folder);
                 if (title) formData.append("title", title);
-
                 formData.append("videofile", blob, fileName);
 
                 const uploadResponse = await fetch(`${uploadUrl}?token=${token}`, {
@@ -117,12 +116,14 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 3. Upload Progress (Status)
-    server.tool(
+    server.registerTool(
         "wecandeo_upload_progress",
-        "Check the progress of a video upload.",
         {
-            uploadUrl: z.string().describe("The upload URL obtained from create_ticket"),
-            token: z.string().describe("The upload token"),
+            description: "Check the progress of a video upload.",
+            inputSchema: {
+                uploadUrl: z.string().describe("The upload URL obtained from create_ticket"),
+                token: z.string().describe("The upload token"),
+            },
         },
         async ({ uploadUrl, token }) => {
             try {
@@ -142,16 +143,17 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 4. Video Encoding Status
-    server.tool(
+    server.registerTool(
         "wecandeo_upload_encoding_status",
-        "Check the encoding status of an uploaded video.",
         {
-            access_key: z.string().describe("The video access key (original key)"),
-            pkg: z.number().describe("The package ID"),
+            description: "Check the encoding status of an uploaded video.",
+            inputSchema: {
+                access_key: z.string().describe("The video access key (original key)"),
+                pkg: z.number().describe("The package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
-                // GET https://api.wecandeo.com/web/encoding/status.json
                 const result = await client.get("/web/encoding/status.json", {
                     key: accessKey,
                     access_key,
@@ -170,14 +172,16 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 5. Upload Thumbnail
-    server.tool(
+    server.registerTool(
         "wecandeo_upload_thumbnail",
-        "Upload a thumbnail image for a video.",
         {
-            thumbnailUploadUrl: z.string().describe("Obtained from create_ticket"),
-            token: z.string().describe("Upload token"),
-            access_key: z.string().describe("Video access key"),
-            imageUrl: z.string().describe("URL of the thumbnail image to upload"),
+            description: "Upload a thumbnail image for a video.",
+            inputSchema: {
+                thumbnailUploadUrl: z.string().describe("Obtained from create_ticket"),
+                token: z.string().describe("Upload token"),
+                access_key: z.string().describe("Video access key"),
+                imageUrl: z.string().describe("URL of the thumbnail image to upload"),
+            },
         },
         async ({ thumbnailUploadUrl, token, access_key, imageUrl }) => {
             try {
@@ -210,15 +214,17 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 6. Upload Caption
-    server.tool(
+    server.registerTool(
         "wecandeo_upload_caption",
-        "Upload a caption (VTT) file for a video.",
         {
-            captionUploadUrl: z.string().describe("Obtained from create_ticket"),
-            token: z.string().describe("Upload token"),
-            access_key: z.string().describe("Video access key"),
-            lang_id: z.number().describe("Language ID"),
-            captionUrl: z.string().describe("URL of the caption file (.vtt)"),
+            description: "Upload a caption (VTT) file for a video.",
+            inputSchema: {
+                captionUploadUrl: z.string().describe("Obtained from create_ticket"),
+                token: z.string().describe("Upload token"),
+                access_key: z.string().describe("Video access key"),
+                lang_id: z.number().describe("Language ID"),
+                captionUrl: z.string().describe("URL of the caption file (.vtt)"),
+            },
         },
         async ({ captionUploadUrl, token, access_key, lang_id, captionUrl }) => {
             try {
@@ -252,10 +258,11 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 7. Caption Language List
-    server.tool(
+    server.registerTool(
         "wecandeo_upload_caption_language",
-        "Retrieve list of supported caption languages and their IDs.",
-        {},
+        {
+            description: "Retrieve list of supported caption languages and their IDs.",
+        },
         async () => {
             try {
                 const result = await client.get("/info/v1/video/caption/language.json", {

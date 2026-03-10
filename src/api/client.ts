@@ -1,3 +1,11 @@
+const DEBUG = typeof process !== "undefined" && process.env.WECANDEO_DEBUG === "true";
+
+function debugLog(label: string, data: unknown) {
+    if (!DEBUG) return;
+    const ts = new Date().toISOString();
+    process.stderr.write(`[wecandeo-debug ${ts}] ${label}\n${JSON.stringify(data, null, 2)}\n`);
+}
+
 export class WecandeoClient {
     private baseUrl = "https://api.wecandeo.com";
     private accessKey: string;
@@ -13,12 +21,23 @@ export class WecandeoClient {
             "Accept": "application/json",
         };
 
+        debugLog(`→ ${options.method ?? "GET"} ${url}`, {
+            headers: { ...headers, Authorization: undefined },
+            body: options.body ? JSON.parse(options.body as string) : undefined,
+        });
+
         const response = await fetch(url, { ...options, headers });
+        const responseText = await response.text();
+
+        debugLog(`← ${response.status} ${url}`, {
+            ok: response.ok,
+            body: (() => { try { return JSON.parse(responseText); } catch { return responseText; } })(),
+        });
+
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Wecandeo API Error (${response.status}): ${errorText}`);
+            throw new Error(`Wecandeo API Error (${response.status}): ${responseText}`);
         }
-        return response.json();
+        return JSON.parse(responseText);
     }
 
     async get(path: string, params?: Record<string, string>) {

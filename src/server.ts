@@ -18,10 +18,9 @@ export function setupServer(server: McpServer, accessKey: string) {
 	registerPackageTools(server, client);
 	registerArchiveTools(server, client);
 
-	server.tool(
+	server.registerTool(
 		"wecandeo_ping",
-		"Check if the Wecandeo MCP server is responsive",
-		{},
+		{ description: "Check if the Wecandeo MCP server is responsive" },
 		async () => ({
 			content: [{ type: "text", text: "pong" }],
 		})

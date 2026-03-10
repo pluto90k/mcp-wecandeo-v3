@@ -11,10 +11,11 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     // -- Tools --
 
     // 24. Package List
-    server.tool(
+    server.registerTool(
         "wecandeo_package_list",
-        "Retrieve list of all distribution packages.",
-        {},
+        {
+            description: "Retrieve list of all distribution packages.",
+        },
         async () => {
             try {
                 const result = await client.get("/info/v1/packages.json", { key: accessKey });
@@ -29,10 +30,14 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     );
 
     // 25. Publish All in Package
-    server.tool(
+    server.registerTool(
         "wecandeo_package_publish_all",
-        "Start publishing all videos in a specific package.",
-        { package_id: z.string().describe("Package ID") },
+        {
+            description: "Start publishing all videos in a specific package.",
+            inputSchema: {
+                package_id: z.string().describe("Package ID"),
+            },
+        },
         async ({ package_id }) => {
             try {
                 const result = await client.get("/info/v1/packages/all/publish.json", {
@@ -50,10 +55,14 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     );
 
     // 26. Unpublish All in Package
-    server.tool(
+    server.registerTool(
         "wecandeo_package_unpublish_all",
-        "Pause publishing all videos in a specific package.",
-        { package_id: z.string().describe("Package ID") },
+        {
+            description: "Pause publishing all videos in a specific package.",
+            inputSchema: {
+                package_id: z.string().describe("Package ID"),
+            },
+        },
         async ({ package_id }) => {
             try {
                 const result = await client.get("/info/v1/packages/all/unpublish.json", {
@@ -71,12 +80,14 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     );
 
     // 27. Block Domain
-    server.tool(
+    server.registerTool(
         "wecandeo_package_block_domain",
-        "Block specific domains from accessing a package.",
         {
-            package_id: z.string().describe("Package ID"),
-            domains: z.string().describe("Comma-separated list of domains to block")
+            description: "Block specific domains from accessing a package.",
+            inputSchema: {
+                package_id: z.string().describe("Package ID"),
+                domains: z.string().describe("Comma-separated list of domains to block"),
+            },
         },
         async ({ package_id, domains }) => {
             try {
@@ -96,12 +107,14 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     );
 
     // 28. Unblock Domain
-    server.tool(
+    server.registerTool(
         "wecandeo_package_unblock_domain",
-        "Unblock specific domains for a package.",
         {
-            package_id: z.string().describe("Package ID"),
-            domains: z.string().describe("Comma-separated list of domains to unblock")
+            description: "Unblock specific domains for a package.",
+            inputSchema: {
+                package_id: z.string().describe("Package ID"),
+                domains: z.string().describe("Comma-separated list of domains to unblock"),
+            },
         },
         async ({ package_id, domains }) => {
             try {
@@ -121,10 +134,11 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     );
 
     // 29. Playlists
-    server.tool(
+    server.registerTool(
         "wecandeo_package_playlists",
-        "Retrieve list of playlists.",
-        {},
+        {
+            description: "Retrieve list of playlists.",
+        },
         async () => {
             try {
                 const result = await client.get("/info/v1/playlist/list.json", { key: accessKey });
@@ -139,16 +153,20 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     );
 
     // 30. Playlist Details
-    server.tool(
+    server.registerTool(
         "wecandeo_package_playlist_details",
-        "Get details of a specific playlist.",
-        { playlistKey: z.string().describe("Playlist Key") },
+        {
+            description: "Get details of a specific playlist.",
+            inputSchema: {
+                playlistKey: z.string().describe("Playlist Key"),
+            },
+        },
         async ({ playlistKey }) => {
             try {
                 const result = await client.get("/info/v1/playlist.json", {
                     key: accessKey,
                     playlistKey,
-                    access_key: accessKey, // Some endpoints might require it differently but client.get usually handles query
+                    access_key: accessKey,
                 });
                 return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
             } catch (error: any) {
@@ -163,9 +181,10 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
     // -- Resources --
 
     // Resource: Packages
-    server.resource(
+    server.registerResource(
         "packages",
         "wecandeo://packages",
+        { description: "List of all distribution packages" },
         async (uri) => {
             const result = await client.get("/info/v1/packages.json", { key: accessKey });
             return {

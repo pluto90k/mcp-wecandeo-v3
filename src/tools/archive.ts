@@ -12,10 +12,11 @@ export function registerArchiveTools(server: McpServer, client: WecandeoClient) 
     // -- Tools --
 
     // 31. Retrieve Folder List
-    server.tool(
+    server.registerTool(
         "wecandeo_archive_list_folders",
-        "Retrieve list of folders in the media archive.",
-        {},
+        {
+            description: "List all folders (directories/폴더 목록) in the media archive. Use this when the user asks '폴더 목록', '폴더 리스트', 'folder list', or 'show folders'. Returns folder names and IDs only — does NOT return videos.",
+        },
         async () => {
             try {
                 const result = await client.get("/info/v1/folders.json", { key: accessKey });
@@ -30,10 +31,14 @@ export function registerArchiveTools(server: McpServer, client: WecandeoClient) 
     );
 
     // 32. Create Folder
-    server.tool(
+    server.registerTool(
         "wecandeo_archive_create_folder",
-        "Create a new folder in the media archive.",
-        { folder_name: z.string().describe("Name of the folder to create") },
+        {
+            description: "Create a new folder in the media archive.",
+            inputSchema: {
+                folder_name: z.string().describe("Name of the folder to create"),
+            },
+        },
         async ({ folder_name }) => {
             try {
                 const result = await client.get("/info/v1/folder/create.json", {
@@ -53,9 +58,10 @@ export function registerArchiveTools(server: McpServer, client: WecandeoClient) 
     // -- Resources --
 
     // Resource: Folders
-    server.resource(
+    server.registerResource(
         "archive_folders",
         "wecandeo://archive/folders",
+        { description: "List of all folders in the media archive" },
         async (uri) => {
             const result = await client.get("/info/v1/folders.json", { key: accessKey });
             return {

@@ -9,12 +9,14 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     const accessKey = client.getAccessKey();
 
     // 16. Add Video to Package
-    server.tool(
+    server.registerTool(
         "wecandeo_video_add_to_package",
-        "Add a video to a specific distribution package.",
         {
-            access_key: z.string().describe("Video access key"),
-            pkg: z.string().describe("Package ID")
+            description: "Add a video to a specific distribution package.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                pkg: z.string().describe("Package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
@@ -34,12 +36,14 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     );
 
     // 17. Exclude Video from Package
-    server.tool(
+    server.registerTool(
         "wecandeo_video_exclude_from_package",
-        "Exclude a video from a specific distribution package.",
         {
-            access_key: z.string().describe("Video access key"),
-            pkg: z.string().describe("Package ID")
+            description: "Exclude a video from a specific distribution package.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                pkg: z.string().describe("Package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
@@ -59,12 +63,14 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     );
 
     // 18. Start Video Publish
-    server.tool(
+    server.registerTool(
         "wecandeo_video_start_publish",
-        "Start publishing a video in a specific package.",
         {
-            access_key: z.string().describe("Video access key"),
-            pkg: z.string().describe("Package ID")
+            description: "Start publishing a video in a specific package.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                pkg: z.string().describe("Package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
@@ -84,12 +90,14 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     );
 
     // 19. Pause Video Publish
-    server.tool(
+    server.registerTool(
         "wecandeo_video_pause_publish",
-        "Pause publishing a video in a specific package.",
         {
-            access_key: z.string().describe("Video access key"),
-            pkg: z.string().describe("Package ID")
+            description: "Pause publishing a video in a specific package.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                pkg: z.string().describe("Package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
@@ -109,12 +117,14 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     );
 
     // 20. Modify Video Folder
-    server.tool(
+    server.registerTool(
         "wecandeo_video_modify_folder",
-        "Move a video to a different folder in the media archive.",
         {
-            access_key: z.string().describe("Video access key"),
-            folder: z.string().describe("Target folder ID")
+            description: "Move a video to a different folder in the media archive. Requires the target folder ID.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                folder: z.string().describe("Target folder ID"),
+            },
         },
         async ({ access_key, folder }) => {
             try {
@@ -134,20 +144,21 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     );
 
     // 21. Modify Video Meta Data
-    server.tool(
+    server.registerTool(
         "wecandeo_video_modify_meta",
-        "Modify metadata (title, tags, author, etc.) of a video.",
         {
-            access_key: z.string().describe("Video access key"),
-            title: z.string().optional().describe("Video title"),
-            tag: z.string().optional().describe("Comma separated tags"),
-            author: z.string().optional().describe("Author name"),
-            series: z.string().optional().describe("Series name"),
-            desc: z.string().optional().describe("Video description"),
+            description: "Modify metadata (title, tags, author, etc.) of a video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                title: z.string().optional().describe("Video title"),
+                tag: z.string().optional().describe("Comma separated tags"),
+                author: z.string().optional().describe("Author name"),
+                series: z.string().optional().describe("Series name"),
+                desc: z.string().optional().describe("Video description"),
+            },
         },
         async ({ access_key, ...params }) => {
             try {
-                // Filter out undefined values
                 const queryParams: Record<string, string> = {
                     key: accessKey,
                     access_key,
@@ -167,14 +178,16 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     );
 
     // 22. Modify Video Extra Data (Viral)
-    server.tool(
+    server.registerTool(
         "wecandeo_video_modify_extra",
-        "Modify viral link and other extra metadata for a video.",
         {
-            access_key: z.string().describe("Video access key"),
-            enable: z.boolean().describe("Enable viral link"),
-            viral_url: z.string().optional().describe("Viral link URL"),
-            price: z.number().optional().describe("Price value"),
+            description: "Modify viral link and other extra metadata for a video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                enable: z.boolean().describe("Enable viral link"),
+                viral_url: z.string().optional().describe("Viral link URL"),
+                price: z.number().optional().describe("Price value"),
+            },
         },
         async ({ access_key, enable, ...params }) => {
             try {
@@ -195,12 +208,14 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
     );
 
     // 23. Set Default Thumbnail
-    server.tool(
+    server.registerTool(
         "wecandeo_video_set_default_thumbnail",
-        "Set a specific thumbnail as the default for the video.",
         {
-            access_key: z.string().describe("Video access key"),
-            seq: z.number().describe("Thumbnail sequence number (1-6)")
+            description: "Set a specific thumbnail as the default for the video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                seq: z.number().describe("Thumbnail sequence number (1-6)"),
+            },
         },
         async ({ access_key, seq }) => {
             try {

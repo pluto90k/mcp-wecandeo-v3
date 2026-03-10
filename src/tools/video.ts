@@ -9,10 +9,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     const accessKey = client.getAccessKey();
 
     // 8. Video List (Package)
-    server.tool(
+    server.registerTool(
         "wecandeo_video_list_package",
-        "Retrieve video list filtered by package ID.",
-        { pkg: z.string().describe("Package ID") },
+        {
+            description: "List videos in a specific distribution package. Requires a package ID. Use this to find videos by package, NOT to list packages or folders.",
+            inputSchema: {
+                pkg: z.string().describe("Package ID"),
+            },
+        },
         async ({ pkg }) => {
             try {
                 const result = await client.get("/info/v1/videos.json", {
@@ -30,10 +34,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 9. Video List (Folder)
-    server.tool(
+    server.registerTool(
         "wecandeo_video_list_folder",
-        "Retrieve video list filtered by folder ID.",
-        { folder: z.string().describe("Folder ID") },
+        {
+            description: "List videos (영상 목록) inside a specific folder. Requires a folder ID parameter — cannot be called without one. Do NOT use this to list folders; use wecandeo_archive_list_folders instead.",
+            inputSchema: {
+                folder: z.string().describe("Folder ID"),
+            },
+        },
         async ({ folder }) => {
             try {
                 const result = await client.get("/info/v1/folder/videos.json", {
@@ -51,12 +59,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 10. Video Details
-    server.tool(
+    server.registerTool(
         "wecandeo_video_details",
-        "Get detailed information of a specific video.",
         {
-            access_key: z.string().describe("Video access key"),
-            pkg: z.string().describe("Package ID")
+            description: "Get detailed information of a specific video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                pkg: z.string().describe("Package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
@@ -76,12 +86,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 11. Video Pub Code (Publish Info)
-    server.tool(
+    server.registerTool(
         "wecandeo_video_pub_code",
-        "Get publish info and player codes for a video.",
         {
-            access_key: z.string().describe("Video access key"),
-            pkg: z.string().describe("Package ID")
+            description: "Get publish info and player codes for a video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                pkg: z.string().describe("Package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
@@ -101,12 +113,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 12. Video Encoded Files
-    server.tool(
+    server.registerTool(
         "wecandeo_video_encoded_file",
-        "Retrieve list of encoded files for a video.",
         {
-            access_key: z.string().describe("Video access key"),
-            pkg: z.string().describe("Package ID")
+            description: "Retrieve list of encoded files for a video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                pkg: z.string().describe("Package ID"),
+            },
         },
         async ({ access_key, pkg }) => {
             try {
@@ -126,12 +140,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 13. Video One-time Key
-    server.tool(
+    server.registerTool(
         "wecandeo_video_onetime_key",
-        "Generate a one-time access key for a video.",
         {
-            access_key: z.string().describe("Video access key"),
-            expire: z.number().describe("Expiration time in seconds")
+            description: "Generate a one-time access key for a video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+                expire: z.number().describe("Expiration time in seconds"),
+            },
         },
         async ({ access_key, expire }) => {
             try {
@@ -151,10 +167,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 14. Video Thumbnails
-    server.tool(
+    server.registerTool(
         "wecandeo_video_thumbnail",
-        "Retrieve thumbnail image info for a video.",
-        { access_key: z.string().describe("Video access key") },
+        {
+            description: "Retrieve thumbnail image info for a video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+            },
+        },
         async ({ access_key }) => {
             try {
                 const result = await client.get("/info/v2/video/thumbnails.json", {
@@ -172,10 +192,14 @@ export function registerVideoTools(server: McpServer, client: WecandeoClient) {
     );
 
     // 15. Video Caption
-    server.tool(
+    server.registerTool(
         "wecandeo_video_caption",
-        "Retrieve caption file info for a video.",
-        { access_key: z.string().describe("Video access key") },
+        {
+            description: "Retrieve caption file info for a video.",
+            inputSchema: {
+                access_key: z.string().describe("Video access key"),
+            },
+        },
         async ({ access_key }) => {
             try {
                 const result = await client.get("/info/v1/video/caption.json", {
