@@ -6,7 +6,7 @@ import { z } from "zod";
  * Video Data Update API Group Tools (16-23)
  */
 export function registerVideoUpdateTools(server: McpServer, client: WecandeoClient) {
-    const accessKey = client.getAccessKey();
+    const apiKey = client.getApiKey();
 
     // 16. Add Video to Package
     server.tool(
@@ -18,7 +18,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, pkg }) => {
             const result = await client.get("/info/v1/video/set/package.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 pkg,
             });
@@ -36,7 +36,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, pkg }) => {
             const result = await client.get("/info/v1/video/set/exclude.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 pkg,
             });
@@ -54,7 +54,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, pkg }) => {
             const result = await client.get("/info/v1/video/set/publish.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 pkg,
             });
@@ -72,7 +72,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, pkg }) => {
             const result = await client.get("/info/v1/video/set/pause.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 pkg,
             });
@@ -90,7 +90,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, folder }) => {
             const result = await client.get("/info/v1/video/set/folder.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 folder,
             });
@@ -112,7 +112,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, ...params }) => {
             const queryParams: Record<string, string> = {
-                key: accessKey,
+                key: apiKey,
                 access_key,
             };
             Object.entries(params).forEach(([k, v]) => {
@@ -135,7 +135,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, enable, ...params }) => {
             const result = await client.get("/info/v1/video/set/viral.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 enable: enable.toString(),
                 ...params as any,
@@ -154,7 +154,7 @@ export function registerVideoUpdateTools(server: McpServer, client: WecandeoClie
         },
         async ({ access_key, seq }) => {
             const result = await client.get("/info/v1/video/set/thumbnail.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 seq: seq.toString(),
             });

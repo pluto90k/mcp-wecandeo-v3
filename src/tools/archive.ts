@@ -6,7 +6,7 @@ import { z } from "zod";
  * Media Archive API Group Tools (31-32)
  */
 export function registerArchiveTools(server: McpServer, client: WecandeoClient) {
-    const accessKey = client.getAccessKey();
+    const apiKey = client.getApiKey();
 
     // 31. Retrieve Folder List
     server.tool(
@@ -15,7 +15,7 @@ export function registerArchiveTools(server: McpServer, client: WecandeoClient) 
         {},
         async () => {
             const result = await client.get("/info/v1/folders.json", {
-                key: accessKey,
+                key: apiKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
         }
@@ -28,7 +28,7 @@ export function registerArchiveTools(server: McpServer, client: WecandeoClient) 
         { folder_name: z.string().describe("Name of the folder to create") },
         async ({ folder_name }) => {
             const result = await client.get("/info/v1/folder/create.json", {
-                key: accessKey,
+                key: apiKey,
                 folder_name,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
