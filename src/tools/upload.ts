@@ -8,7 +8,7 @@ import path from "node:path";
  * Upload API Group Tools (1-7)
  */
 export function registerUploadTools(server: McpServer, client: WecandeoClient) {
-    const accessKey = client.getAccessKey();
+    const apiKey = client.getApiKey();
 
     // 1. Create Upload Ticket (Token)
     server.tool(
@@ -17,7 +17,7 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
         {},
         async () => {
             const result = await client.get("/web/v3/uploadToken.json", {
-                key: accessKey,
+                key: apiKey,
             });
             return {
                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
@@ -113,7 +113,7 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
         },
         async ({ access_key, pkg }) => {
             const result = await client.get("/web/encoding/status.json", {
-                key: accessKey,
+                key: apiKey,
                 access_key,
                 pkg: pkg.toString(),
             });
@@ -194,7 +194,100 @@ export function registerUploadTools(server: McpServer, client: WecandeoClient) {
         {},
         async () => {
             const result = await client.get("/info/v1/video/caption/language.json", {
-                key: accessKey,
+                key: apiKey,
+            });
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+            };
+        }
+    );
+
+    // 8. Cancel Single Encoding
+    server.tool(
+        "wecandeo_encoding_cancel",
+        "Cancel a specific video encoding request.",
+        {
+            videoFileKey: z.string().describe("The video file key to cancel"),
+        },
+        async ({ videoFileKey }) => {
+            const result = await client.cancelEncoding(videoFileKey);
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+            };
+        }
+    );
+
+    // 9. Cancel All Encodings
+    server.tool(
+        "wecandeo_encoding_cancel_all",
+        "Cancel all video encoding requests within an optional date range.",
+        {
+            startDate: z.string().optional().describe("Start date (yyyy-MM-dd)"),
+            endDate: z.string().optional().describe("End date (yyyy-MM-dd)"),
+        },
+        async ({ startDate, endDate }) => {
+            const result = await client.cancelAllEncodings({
+                start_date: startDate,
+                end_date: endDate,
+            });
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+            };
+        }
+    );
+
+    // 10. Retry Single Encoding
+    server.tool(
+        "wecandeo_encoding_retry",
+        "Retry a specific video encoding request.",
+        {
+            videoFileKey: z.string().describe("The video file key to retry"),
+        },
+        async ({ videoFileKey }) => {
+            const result = await client.retryEncoding(videoFileKey);
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+            };
+        }
+    );
+
+    // 11. Retry All Encodings
+    server.tool(
+        "wecandeo_encoding_retry_all",
+        "Retry all failed video encoding requests within an optional date range.",
+        {
+            startDate: z.string().optional().describe("Start date (yyyy-MM-dd)"),
+            endDate: z.string().optional().describe("End date (yyyy-MM-dd)"),
+        },
+        async ({ startDate, endDate }) => {
+            const result = await client.retryAllEncodings({
+                start_date: startDate,
+                end_date: endDate,
+            });
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+            };
+        }
+    );
+
+    // 12. List All Encoding Requests
+    server.tool(
+        "wecandeo_encoding_list",
+        "List all video encoding requests with optional filtering and pagination.",
+        {
+            status: z.string().optional().describe("Encoding status to filter (e.g., BEING,WAIT,CANCEL)"),
+            startDate: z.string().optional().describe("Start date (yyyy-MM-dd)"),
+            endDate: z.string().optional().describe("End date (yyyy-MM-dd)"),
+            page: z.number().optional().describe("Page number (default: 1)"),
+            pageSize: z.number().optional().describe("Items per page (default: 10, max: 100)"),
+        },
+        async ({ status, startDate, endDate, page, pageSize }) => {
+            const result = await client.listEncodingRequests({
+                status,
+                start_date: startDate,
+                end_date: endDate,
+                page,
+                pagesize: pageSize,
             });
             return {
                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }],

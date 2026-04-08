@@ -14,14 +14,14 @@ const require = createRequire(import.meta.url);
 const { version } = require("../package.json");
 
 async function main() {
-	const accessKey = process.env.WECANDEO_ACCESS_KEY;
-	if (!accessKey) {
-		console.error("Error: WECANDEO_ACCESS_KEY environment variable is required.");
-		console.error("Usage: WECANDEO_ACCESS_KEY=your_key npx @pluto90/wecandeo-v3-mcp");
+	const apiKey = process.env.WECANDEO_API_KEY || process.env.WECANDEO_ACCESS_KEY;
+	if (!apiKey) {
+		console.error("Error: WECANDEO_API_KEY environment variable is required.");
+		console.error("Usage: WECANDEO_API_KEY=your_key npx @pluto90/wecandeo-v3-mcp");
 		process.exit(1);
 	}
 
-	const client = new WecandeoClient(accessKey);
+	const client = new WecandeoClient(apiKey);
 
 	const server = new McpServer({
 		name: "wecandeo-videopack-mcp",

@@ -6,7 +6,7 @@ import { z } from "zod";
  * Package API Group Tools (24-30)
  */
 export function registerPackageTools(server: McpServer, client: WecandeoClient) {
-    const accessKey = client.getAccessKey();
+    const apiKey = client.getApiKey();
 
     // 24. Package List
     server.tool(
@@ -15,7 +15,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         {},
         async () => {
             const result = await client.get("/info/v1/packages.json", {
-                key: accessKey,
+                key: apiKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
         }
@@ -28,7 +28,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         { package_id: z.string().describe("Package ID") },
         async ({ package_id }) => {
             const result = await client.get("/info/v1/packages/all/publish.json", {
-                key: accessKey,
+                key: apiKey,
                 package_id,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
@@ -42,7 +42,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         { package_id: z.string().describe("Package ID") },
         async ({ package_id }) => {
             const result = await client.get("/info/v1/packages/all/unpublish.json", {
-                key: accessKey,
+                key: apiKey,
                 package_id,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
@@ -59,7 +59,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         },
         async ({ package_id, domains }) => {
             const result = await client.get("/info/v1/packages/set/block/domain.json", {
-                key: accessKey,
+                key: apiKey,
                 package_id,
                 domains,
             });
@@ -77,7 +77,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         },
         async ({ package_id, domains }) => {
             const result = await client.get("/info/v1/packages/set/unblock/domain.json", {
-                key: accessKey,
+                key: apiKey,
                 package_id,
                 domains,
             });
@@ -92,7 +92,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         {},
         async () => {
             const result = await client.get("/info/v1/playlist/list.json", {
-                key: accessKey,
+                key: apiKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
         }
@@ -105,7 +105,7 @@ export function registerPackageTools(server: McpServer, client: WecandeoClient) 
         { playlistKey: z.string().describe("Playlist Key") },
         async ({ playlistKey }) => {
             const result = await client.get("/info/v1/playlist.json", {
-                key: accessKey,
+                key: apiKey,
                 playlistKey,
             });
             return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };

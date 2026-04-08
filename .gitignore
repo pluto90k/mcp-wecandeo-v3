@@ -168,3 +168,7 @@ dist
 
 # MCP config (contains API keys)
 .mcp.json
+
+# Tool/IDE specific
+.claude/
+.vscode/
